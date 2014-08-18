@@ -1,37 +1,41 @@
 var request = require('request'),
+  BaseModel = require('koop-server/lib/BaseModel.js'),
   terraformerWKT = require('terraformer-wkt-parser'),
   terraformerParser = require('terraformer-arcgis-parser');
 
-var Cloudant = function(){
+var Cloudant = function( koop ){
+
+  var cloudant = {};
+  cloudant.__proto__ = BaseModel( koop );
 
   // adds a service to the Cache.db
   // needs a host, generates an id
-  this.register = function( id, host, callback ){
+  cloudant.register = function( id, host, callback ){
     var type = 'cloudant:services';
-    Cache.db.services.count( type, function(error, count){
+    koop.Cache.db.serviceCount( type, function(error, count){
       id = id || count++;
-      Cache.db.services.register( type, {'id': id, 'host': host},  function( err, success ){
+      koop.Cache.db.serviceRegister( type, {'id': id, 'host': host},  function( err, success ){
         callback( err, id );
       });
     });
   };
 
-  this.remove = function( id, callback ){
-    Cache.db.services.remove( 'cloudant:services', parseInt(id) || id,  callback);
+  cloudant.remove = function( id, callback ){
+    koop.Cache.db.serviceRemove( 'cloudant:services', parseInt(id) || id,  callback);
   };
 
   // get service by id, no id == return all
-  this.find = function( id, callback ){
-    Cache.db.services.get( 'cloudant:services', parseInt(id) || id, callback);
+  cloudant.find = function( id, callback ){
+    koop.Cache.db.serviceGet( 'cloudant:services', parseInt(id) || id, callback);
   };
 
   // got the service and get the item
-  this.getResource = function( host, id, options, callback ){
+  cloudant.getResource = function( host, id, options, callback ){
     var self = this,
       type = 'Cloudant',
       key = [host,id].join('::');
 
-    Cache.get( type, key, options, function(err, entry ){
+    koop.Cache.get( type, key, options, function(err, entry ){
       if ( err ){
         // idField*
         // objectIds
@@ -59,7 +63,7 @@ var Cloudant = function(){
             callback(err, null);
           } else {
             var geojson = JSON.parse(data.body);
-            Cache.insert( type, key, geojson, 0, function( err, success){
+            koop.Cache.insert( type, key, geojson, 0, function( err, success){
               if ( success ) callback( null, [geojson] );
             });
           }
@@ -70,7 +74,9 @@ var Cloudant = function(){
     });
   };
 
+  return cloudant;
+
 }
 
 
-module.exports = new Cloudant();
+module.exports = Cloudant;

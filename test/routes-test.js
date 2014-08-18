@@ -1,24 +1,26 @@
 var should = require('should'),
   request = require('supertest'),
   config = require('config'),
-  koop = require('koop-server')(config);
-
-global.config = config;
+  koop = require('koop-server')(config),
+  kooplib = require('koop-server/lib');
 
 var cloudantHost = 'https://normanb.cloudant.com';
 var resource = 'colorado_skiing/_design/SpatialView/_geo/ski_areas';
 
-before(function (done) {
-    Cache.db = PostGIS.connect( config.db.postgis.conn );
-    try { koop.register(require("../index.js")); } catch(e){}
-    done();
+before(function(done){
+  var provider = require('../index.js');
+  model = new provider.model( kooplib );
+  controller = new provider.controller( model );
+  koop._bindRoutes( provider.routes, controller );
+  done();
 });
+
 
 describe('Koop Routes', function(){
 
     before(function(done){
       request(koop)
-          .post('/cloudant/register')
+          .post('/cloudant')
           .set('Content-Type', 'application/json')
           .send({
             'host': cloudantHost,
@@ -43,7 +45,7 @@ describe('Koop Routes', function(){
     describe('/cloudant routes', function() {
       it('register should return 500 when POSTing w/o a host', function(done) {
         request(koop)
-          .post('/cloudant/register')
+          .post('/cloudant')
           .end(function(err, res){
             res.should.have.status(500);
             done();
