@@ -1,9 +1,12 @@
-var BaseController = require('koop-server/lib/Controller.js'),
+var BaseController = require('koop-server/lib/BaseController.js'),
   fs = require('fs');
 
 var Controller = function( Cloudant ){
 
-  this.register = function(req, res){
+  var controller = {};
+  controller.__proto__ = BaseController( );
+
+  controller.register = function(req, res){
     if ( !req.body.host ){
       res.send('Must provide a host to register:', 500);
     } else {
@@ -17,7 +20,7 @@ var Controller = function( Cloudant ){
     }
   };
 
-  this.list = function(req, res){
+  controller.list = function(req, res){
     Cloudant.find(null, function(err, data){
       if (err) {
         res.send( err, 500);
@@ -27,7 +30,7 @@ var Controller = function( Cloudant ){
     });
   };
 
-  this.find = function(req, res){
+  controller.find = function(req, res){
     Cloudant.find(req.params.id, function(err, data){
       if (err) {
         res.send( err, 404);
@@ -37,11 +40,11 @@ var Controller = function( Cloudant ){
     });
   };
 
-  this.findResourcePost = function( req, res ){
-    Controller.findResource( req, res );
+  controller.findResourcePost = function( req, res ){
+    controller.findResource( req, res );
   };
 
-  this.findResource = function(req, res){
+  controller.findResource = function(req, res){
     Cloudant.find(req.params.id, function(err, data){
       if (err) {
         res.send( err, 500);
@@ -57,34 +60,43 @@ var Controller = function( Cloudant ){
             options[key] = req.query[key];
           }
         }
-        //console.log(data.host, req.params.item, options);
-        Cloudant.getResource( data.host, req.params.item, options, function(error, itemJson){
+        Cloudant.getResource( data.host, req.params.item, options, function(error, json){
           if (error) {
             res.send( error, 500);
           } else if ( req.params.format ) {
-            var key = ['cloudant', req.params.id ].join(':');
-            var fileName = [sails.config.data_dir + 'files', key, key + '.' + req.params.format].join('/');
 
-            if (fs.existsSync( fileName )){
-              res.sendfile( fileName );
-            } else {
-              Cloudant.exportToFormat( req.params.format, key, itemJson[0], function(err, file){
-                if (err){
-                  res.send(err, 500);
+            var key = ['cloudant', req.params.id ].join(':');
+            var path = ['files', key].join('/');
+            var fileName = key + '.' + req.params.format;
+
+            Cloudant.files.exists(path, fileName, function( exists, path ){
+              if ( exists ){
+                if (path.substr(0, 4) == 'http'){
+                  res.redirect( path );
                 } else {
-                  res.sendfile( file );
+                  res.sendfile( path );
                 }
-              });
-            }
+              } else {
+                console.log(data)
+                Cloudant.exportToFormat( req.params.format, key, key, json[0], {}, function(err, file){
+                  if (err){
+                    res.send(err, 500);
+                  } else {
+                    res.sendfile( file );
+                  }
+                });
+              }
+            });
+  
           } else {
-            res.json( itemJson[0] );
+            res.json( json[0] );
           }
         });
       }
     });
   };
 
-  this.del = function(req, res){
+  controller.del = function(req, res){
     if ( !req.params.id ){
       res.send( 'Must specify a service id', 500 );
     } else {
@@ -98,7 +110,7 @@ var Controller = function( Cloudant ){
     }
   };
 
-  this.featureserver = function( req, res ){
+  controller.featureserver = function( req, res ){
     var callback = req.query.callback;
     delete req.query.callback;
 
@@ -128,7 +140,7 @@ var Controller = function( Cloudant ){
           } else {
             // pass to the shared logic for FeatureService routing
             delete req.query.geometry;
-            BaseController._processFeatureServer( req, res, err, geojson, callback);
+            controller.processFeatureServer( req, res, err, geojson, callback);
           }
         });
       }
@@ -136,11 +148,11 @@ var Controller = function( Cloudant ){
 
   };
 
-  this.thumbnail = function(req, res){
+  controller.thumbnail = function(req, res){
 
     // check the image first and return if exists
     var key = ['cloudant', req.params.id, req.params.item].join(':');
-    var dir = sails.config.data_dir + '/thumbs/';
+    var dir = '/thumbs/';
     req.query.width = parseInt( req.query.width ) || 150;
     req.query.height = parseInt( req.query.height ) || 150;
     req.query.f_base = dir + key + '/' + req.query.width + '::' + req.query.height;
@@ -180,11 +192,11 @@ var Controller = function( Cloudant ){
   };
 
 
-  this.preview = function(req, res){
+  controller.preview = function(req, res){
    res.view(__dirname + '/../views/demo', { locals:{ host: req.params.id, item: req.params.item } });
   };
 
-  return this;
+  return controller;
 
 };
 
