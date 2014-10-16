@@ -1,10 +1,10 @@
-var BaseController = require('koop-server/lib/BaseController.js'),
-  fs = require('fs');
+var BaseController = require('koop-server/lib/BaseController.js');
+var fs = require('fs');
 
 var Controller = function( Cloudant ){
 
   var controller = {};
-  controller.__proto__ = BaseController( );
+  controller.__proto__ = BaseController();
 
   controller.register = function(req, res){
     if ( !req.body.host ){
