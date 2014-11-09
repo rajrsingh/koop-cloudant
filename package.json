@@ -13,7 +13,9 @@
     "koop-server": "*",
     "config": "~0.4.35",
     "ejs": "~1.0.0",
-    "node.extend": "~1.0.10"
+    "node.extend": "~1.0.10",
+    "terraformer-arcgis-parser": "1.0.4",
+    "terraformer-wkt-parser": "~1.0.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
