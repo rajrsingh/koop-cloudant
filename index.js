@@ -1,4 +1,14 @@
-exports.name = 'Cloudant';
-exports.controller = require('./controller');
-exports.routes = require('./routes');
-exports.model = require('./models/Cloudant.js');
+var pkg = require('./package.json')
+
+var provider = {
+  name: 'cloudant',
+  hosts: true,
+  controller: require('./controller'),
+  routes: require('./routes'),
+  model: require('./models/cloudant.js'),
+  status: {
+    version: pkg.version
+  }
+}
+
+module.exports = provider

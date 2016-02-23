@@ -1,13 +1,9 @@
 var request = require('request'),
-  BaseModel = require('koop-server/lib/BaseModel.js'),
   terraformerWKT = require('terraformer-wkt-parser'),
   terraformerParser = require('terraformer-arcgis-parser');
 
 var Cloudant = function( koop ){
-
-  var cloudant = {};
-  cloudant.__proto__ = BaseModel( koop );
-
+  var cloudant = koop.BaseModel(koop)
   // adds a service to the Cache.db
   // needs a host, generates an id
   cloudant.register = function( id, host, callback ){

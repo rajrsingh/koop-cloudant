@@ -1,10 +1,7 @@
-var BaseController = require('koop-server/lib/BaseController.js');
 var fs = require('fs');
 
-var Controller = function( Cloudant ){
-
-  var controller = {};
-  controller.__proto__ = BaseController();
+var Controller = function (Socrata, BaseController) {
+  var controller = BaseController()
 
   controller.register = function(req, res){
     if ( !req.body.host ){
@@ -87,7 +84,7 @@ var Controller = function( Cloudant ){
                 });
               }
             });
-  
+
           } else {
             res.json( json[0] );
           }
