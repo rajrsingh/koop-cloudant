@@ -12,7 +12,6 @@
   "dependencies": {
     "config": "~0.4.35",
     "ejs": "~1.0.0",
-    "koop-server": "*",
     "node.extend": "~1.0.10",
     "request": "^2.69.0",
     "terraformer-arcgis-parser": "1.0.4",
