@@ -1,15 +1,15 @@
 var fs = require('fs');
 
-var Controller = function (Socrata, BaseController) {
+var Controller = function (Cloudant, BaseController) {
   var controller = BaseController()
 
   controller.register = function(req, res){
     if ( !req.body.host ){
-      res.send('Must provide a host to register:', 500);
+      res.status(500).send('Must provide a host to register:');
     } else {
       Cloudant.register( req.body.id, req.body.host, function(err, id){
         if (err) {
-          res.send( err, 500);
+          res.status(500).send(err);
         } else {
           res.json({ 'serviceId': id });
         }
@@ -20,7 +20,7 @@ var Controller = function (Socrata, BaseController) {
   controller.list = function(req, res){
     Cloudant.find(null, function(err, data){
       if (err) {
-        res.send( err, 500);
+        res.status(500).send(err);
       } else {
         res.json( data );
       }
@@ -30,7 +30,8 @@ var Controller = function (Socrata, BaseController) {
   controller.find = function(req, res){
     Cloudant.find(req.params.id, function(err, data){
       if (err) {
-        res.send( err, 404);
+        res.status(404).send(err);
+      // @TODO a bad id is not returning an error
       } else {
         res.json( data );
       }
@@ -44,7 +45,7 @@ var Controller = function (Socrata, BaseController) {
   controller.findResource = function(req, res){
     Cloudant.find(req.params.id, function(err, data){
       if (err) {
-        res.send( err, 500);
+        res.status(500).send(err);
       } else {
         // Get the item
         var options = {
@@ -59,7 +60,7 @@ var Controller = function (Socrata, BaseController) {
         }
         Cloudant.getResource( data.host, req.params.item, options, function(error, json){
           if (error) {
-            res.send( error, 500);
+            res.status(500).send(error);
           } else if ( req.params.format ) {
 
             var key = ['cloudant', req.params.id ].join(':');
@@ -77,7 +78,7 @@ var Controller = function (Socrata, BaseController) {
                 console.log(data)
                 Cloudant.exportToFormat( req.params.format, key, key, json[0], {}, function(err, file){
                   if (err){
-                    res.send(err, 500);
+                    res.status(500).send(err);
                   } else {
                     res.sendfile( file );
                   }
@@ -99,7 +100,7 @@ var Controller = function (Socrata, BaseController) {
     } else {
       Cloudant.remove(req.params.id, function(err, data){
         if (err) {
-          res.send( err, 500);
+          res.status(500).send(err);
         } else {
           res.json( data );
         }
@@ -117,7 +118,7 @@ var Controller = function (Socrata, BaseController) {
 
     Cloudant.find(req.params.id, function(err, data){
       if (err) {
-        res.send( err, 500);
+        res.status(500).send(err);
       } else {
         // Get the item
         var options = {
@@ -133,7 +134,7 @@ var Controller = function (Socrata, BaseController) {
 
         Cloudant.getResource( data.host, req.params.item, options, function(error, geojson){
           if (error) {
-            res.send( error, 500);
+            res.status(500).send(err);
           } else {
             // pass to the shared logic for FeatureService routing
             delete req.query.geometry;
@@ -161,19 +162,19 @@ var Controller = function (Socrata, BaseController) {
 
       Cloudant.find(req.params.id, function(err, data){
         if (err) {
-          res.send( err, 500);
+          res.status(500).send(err);
         } else {
           // Get the item
           Cloudant.getResource( data.host, req.params.item, req.query, function(error, itemJson){
             if (error) {
-              res.send( error, 500);
+              res.status(500).send(err);
             } else {
               var key = ['cloudant', req.params.id, req.params.item].join(':');
 
               // generate a thumbnail
               Cloudant.thumbnailGenerate( itemJson[0], key, req.query, function(err, file){
                 if (err){
-                  res.send(err, 500);
+                  res.status(500).send(err);
                 } else {
                   // send back image
                   res.sendfile( file );
