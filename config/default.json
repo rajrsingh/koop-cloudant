@@ -1,0 +1,6 @@
+{
+  "server": {
+    "port": 1337
+  },
+  "data_dir": "/usr/local/koop/"
+}
