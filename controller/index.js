@@ -1,6 +1,6 @@
 var fs = require('fs');
 
-var Controller = function (Socrata, BaseController) {
+var Controller = function (Cloudant, BaseController) {
   var controller = BaseController()
 
   controller.register = function(req, res){
